@@ -75,3 +75,37 @@ html,body{max-width:100%;overflow-x:clip}.main-area{min-width:0}.app-version{dis
 @media(max-width:360px){.breadcrumb{font-size:10px}.topbar-right{gap:3px}.streak{font-size:11px}.account-button .avatar{width:35px;height:35px}.auth-card{padding-left:16px;padding-right:16px}.nav-item{padding-left:10px;padding-right:10px}}
 @media(prefers-reduced-motion:reduce){.sidebar{transition:none!important}.mobile-scrim{backdrop-filter:none}}
 
+/* v1.2.0 · Movimiento vivo */
+:root{--ease-spring:cubic-bezier(.2,.8,.2,1);--surface-shadow:0 16px 42px #02061738}
+.hero{background-size:160% 160%;animation:heroBreath 13s ease-in-out infinite alternate}
+.hero::after{animation-duration:7s}
+.live-dot{animation:dotGlow 2.2s ease-in-out infinite}
+.stat-card,.route-card,.tip-banner,.progress-big,.phase-card,.exercise-card,.finish-banner{transition:transform .28s var(--ease-spring),border-color .28s ease,box-shadow .28s ease,background-color .28s ease}
+.route-card,.stat-card,.progress-big{position:relative;isolation:isolate}
+.route-card::after,.stat-card::after,.progress-big::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;opacity:0;background:radial-gradient(260px circle at var(--pointer-x,50%) var(--pointer-y,50%),#b8f36b16,transparent 72%);transition:opacity .25s ease}
+.route-card:hover::after,.stat-card:hover::after,.progress-big:hover::after{opacity:1}
+.stat-card:hover,.progress-big:hover{transform:translateY(-3px);border-color:#465a43;box-shadow:var(--surface-shadow)}
+.route-card:hover{transform:translateY(-5px) scale(1.008);border-color:#53684b;box-shadow:0 18px 48px #0005,0 0 0 1px #b8f36b12}
+.route-card .course-icon{transition:transform .35s var(--ease-spring),box-shadow .35s ease}
+.route-card:hover .course-icon{transform:rotate(-7deg) scale(1.08);box-shadow:0 8px 22px #0004}
+.tip-banner:hover,.phase-card:hover,.exercise-card:hover,.finish-banner:hover{border-color:#506348;box-shadow:0 14px 38px #0003}
+.btn,.text-button,.small-btn,.nav-item,.course-link,.phase-link{transition:transform .2s var(--ease-spring),background-color .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease}
+.btn:active,.small-btn:active,.nav-item:active,.course-link:active,.phase-link:active{transform:scale(.97)}
+.btn-primary{box-shadow:0 4px 0 #6e9d3c,0 8px 18px #b8f36b12}
+.btn-primary:hover{box-shadow:0 4px 0 #6e9d3c,0 12px 28px #b8f36b32}
+.nav-item.active{box-shadow:inset 3px 0 var(--green)}
+.phase-link.active{box-shadow:0 0 0 1px #b8f36b45,0 7px 18px #b8f36b12}
+.progress-fill{box-shadow:0 0 12px #b8f36b66}
+.account-button:hover .avatar{transform:rotate(-8deg) scale(1.07)}
+.avatar{transition:transform .25s var(--ease-spring)}
+.motion-item{opacity:0;transform:translateY(17px) scale(.99);transition:opacity .48s ease var(--motion-delay,0ms),transform .58s var(--ease-spring) var(--motion-delay,0ms)}
+.motion-item.motion-visible{opacity:1;transform:translateY(0) scale(1)}
+.motion-item.motion-visible.count-pulse{animation:countPulse .46s var(--ease-spring)}
+.xp-changed{display:inline-block;animation:countPulse .46s var(--ease-spring)}
+@keyframes heroBreath{0%{background-position:14% 50%;filter:saturate(.92)}100%{background-position:88% 50%;filter:saturate(1.12)}}
+@keyframes dotGlow{0%,100%{box-shadow:0 0 8px #b8f36b52;transform:scale(.92)}50%{box-shadow:0 0 16px #b8f36bba;transform:scale(1.13)}}
+@keyframes countPulse{0%{transform:scale(1)}48%{transform:scale(1.16);color:var(--green)}100%{transform:scale(1)}}
+@media(hover:hover) and (pointer:fine){.btn:hover,.small-btn:hover,.phase-link:hover{transform:translateY(-2px)}.course-link:hover{transform:translateX(3px)}.nav-item:hover{transform:translateX(2px)}}
+@media(max-width:800px){.hero{animation-duration:18s}.route-card:hover,.stat-card:hover,.progress-big:hover,.tip-banner:hover,.phase-card:hover,.exercise-card:hover,.finish-banner:hover{transform:none;box-shadow:none}.motion-item{transform:translateY(12px)}}
+@media(prefers-reduced-motion:reduce){.hero,.hero::after,.live-dot,.route-card:hover,.stat-card:hover,.progress-big:hover,.route-card:hover .course-icon,.motion-item,.motion-item.motion-visible.count-pulse{animation:none!important;transition:none!important;transform:none!important;opacity:1!important}.route-card::after,.stat-card::after,.progress-big::after{display:none!important}}
+
