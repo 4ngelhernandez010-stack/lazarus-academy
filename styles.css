@@ -156,3 +156,5 @@ body{background:#f7f9f5;color:#263238;font-size:16px}.app-shell{background:#f7f9
 @media(max-width:600px){.loader-logo-wrap{width:112px;height:112px}.loader-logo{width:76px;height:76px}.loader-brand{font-size:16px;letter-spacing:.18em}.loader-content p{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.app-loader::before,.app-loader::after,.loader-logo,.loader-orbit,.loader-track span,.loader-content,.loader-code b{animation:none}.loader-track span{width:65%}}
 
+.progress-load-more{display:block;margin:22px auto}
+
