@@ -4,13 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f9f5">
-  <meta name="application-version" content="1.4.0">
+  <meta name="application-version" content="1.4.1">
   <meta name="description" content="Lazarus Academy: 840 módulos para aprender 14 lenguajes desde cero. Crea una cuenta y sincroniza tu progreso.">
   <title>Lazarus Academy — Aprende haciendo</title>
   <link rel="icon" href="assets/lazarus-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="auth-locked">
+  <div class="app-loader" id="appLoader" role="status" aria-live="polite" aria-label="Cargando Lazarus Academy">
+    <div class="loader-content">
+      <div class="loader-logo-wrap"><img src="assets/lazarus-logo.svg" alt="" class="loader-logo"><span class="loader-orbit orbit-a"></span><span class="loader-orbit orbit-b"></span></div>
+      <div class="loader-brand">LAZARUS <span>ACADEMY</span></div>
+      <p>Preparando tu próximo reto…</p>
+      <div class="loader-track" aria-hidden="true"><span></span></div>
+      <div class="loader-code" aria-hidden="true"><span>&lt;</span> aprende <b>·</b> practica <span>/&gt;</span></div>
+    </div>
+  </div>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <a class="brand" href="#" aria-label="Lazarus Academy inicio">
@@ -26,7 +35,7 @@
       <div class="sidebar-bottom">
         <div class="mini-status"><span class="status-dot"></span><div><b id="accountStatus">Modo invitado</b><small id="saveStatus">Avance guardado en este dispositivo</small></div></div>
         <button class="reset-link" id="resetProgress">Reiniciar progreso</button>
-        <small class="app-version">v1.4.0 · Camino de código</small>
+        <small class="app-version">v1.4.1 · Entrada animada</small>
       </div>
     </aside>
     <button class="mobile-scrim" id="mobileScrim" type="button" aria-label="Cerrar menú" hidden></button>
