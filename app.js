@@ -586,6 +586,25 @@ function completeLesson(id){
 function goNextLesson(){const all=courseLessons(currentLesson.course),idx=all.findIndex(l=>l.id===currentLesson.id);if(idx<all.length-1)openLesson(all[idx+1].id);else openCourse(currentLesson.course)}
 function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 let toastTimer;function showToast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2300)}
+function enableMotionFX(){
+ const selector=".hero,.stat-card,.route-card,.tip-banner,.progress-big,.phase-card,.exercise-card,.finish-banner,.lesson-row";
+ const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ const observer=!reduced&&"IntersectionObserver" in window?new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("motion-visible");observer.unobserve(entry.target)}}),{threshold:.12,rootMargin:"0px 0px -24px 0px"}):null;
+ const attach=root=>{
+  const elements=[];
+  if(root.nodeType===1&&root.matches(selector))elements.push(root);
+  if(root.querySelectorAll)elements.push(...root.querySelectorAll(selector));
+  elements.forEach((element,index)=>{
+   if(element.dataset.motionReady)return;
+   element.dataset.motionReady="true";element.classList.add("motion-item");
+   element.style.setProperty("--motion-delay",`${Math.min(index%6*55,275)}ms`);
+   if(observer)observer.observe(element);else element.classList.add("motion-visible");
+  });
+ };
+ const area=$(".main-area");attach(area);
+ if("MutationObserver" in window)new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1)attach(node)}))).observe(area,{childList:true,subtree:true});
+ const xp=$("#topXp");if("MutationObserver" in window)new MutationObserver(()=>{xp.classList.remove("xp-changed");void xp.offsetWidth;xp.classList.add("xp-changed")}).observe(xp,{childList:true,characterData:true,subtree:true});
+}
 function setAuthMode(mode){authMode=mode;const signup=mode==="signup";$("#authNameWrap").hidden=!signup;$("#authName").required=signup;$("#authPassword").autocomplete=signup?"new-password":"current-password";$("#authSubmit").textContent=signup?"Crear cuenta":"Iniciar sesión";$("#authTitle").textContent=signup?"Empieza a programar hoy":"Qué bueno verte de nuevo";$("#authDescription").textContent=signup?"Crea tu cuenta gratuita y guarda tu progreso en todos tus dispositivos.":"Inicia sesión para continuar justo donde lo dejaste.";$("#authSignInTab").classList.toggle("active",!signup);$("#authSignInTab").setAttribute("aria-selected",String(!signup));$("#authSignUpTab").classList.toggle("active",signup);$("#authSignUpTab").setAttribute("aria-selected",String(signup));showAuthMessage("")}
 function renderAuthStatus(){const name=currentUser?.user_metadata?.username||currentUser?.email?.split("@")[0]||"";$("#accountButtonText").textContent=currentUser?name:"Iniciar sesión";$("#accountAvatar").textContent=currentUser?name.slice(0,1).toUpperCase():"L";$("#accountStatus").textContent=currentUser?name:"Modo invitado";$("#saveStatus").textContent=currentUser?"Progreso sincronizado en la nube":"Avance guardado en este dispositivo";$("#authLogout").hidden=!currentUser;$("#authTabs").hidden=!!currentUser;$("#authNameWrap").hidden=!!currentUser||authMode!=="signup";$("#authEmail").closest("label").hidden=!!currentUser;$("#authPassword").closest("label").hidden=!!currentUser;$("#authSubmit").hidden=!!currentUser;$("#authClose").hidden=!currentUser&&document.body.classList.contains("auth-locked");$("#authTitle").textContent=currentUser?"Tu cuenta Lazarus":authMode==="signup"?"Empieza a programar hoy":"Qué bueno verte de nuevo";$("#authDescription").textContent=currentUser?`Sesión iniciada como ${currentUser.email}. Tu progreso se sincroniza con tu cuenta.`:authMode==="signup"?"Crea tu cuenta gratuita y guarda tu progreso en todos tus dispositivos.":"Inicia sesión para continuar justo donde lo dejaste."}
 async function loadUserProgress(user){currentUser=user;try{const {data,error}=await authClient.from("lazarus_progress").select("progress").eq("user_id",user.id).maybeSingle();if(error)throw error;const local=JSON.parse(localStorage.getItem(`lazarusAcademyState:${user.id}`)||"null");const cloud=data?.progress;Object.assign(state,initialState(),cloud||local||{});if(!cloud){await syncProgress()}else localStorage.setItem(`lazarusAcademyState:${user.id}`,JSON.stringify(state));$("#saveStatus").textContent="Progreso sincronizado en la nube"}catch(error){console.error("No se pudo cargar el progreso de la cuenta",error);const local=JSON.parse(localStorage.getItem(`lazarusAcademyState:${user.id}`)||"null");Object.assign(state,initialState(),local||{});$("#saveStatus").textContent="Cuenta activa · error de sincronización";$("#authMessage").textContent="No se pudo abrir el almacenamiento de progreso. Revisa la instalación de Supabase."}document.body.classList.remove("auth-locked");renderAuthStatus();renderCourseNav();renderHomeCourses();renderCourseListing();renderStats();if(currentLesson)renderLesson();if($("#authDialog").open)$("#authDialog").close()}
@@ -628,5 +647,6 @@ document.addEventListener("keydown",event=>{if(event.key==="Escape"&&$("#sidebar
 $("#soundToggle").addEventListener("click",()=>{state.soundEnabled=!state.soundEnabled;const button=$("#soundToggle");button.setAttribute("aria-pressed",String(state.soundEnabled));button.setAttribute("aria-label",state.soundEnabled?"Silenciar sonidos":"Activar sonidos");button.title=state.soundEnabled?"Sonidos activados":"Sonidos silenciados";button.classList.toggle("muted",!state.soundEnabled);saveState();if(state.soundEnabled)playFeedbackSound(true)});
 $("#resetProgress").addEventListener("click",()=>{if(confirm("¿Seguro que quieres borrar todo tu progreso, XP y códigos guardados en tu cuenta?")){Object.assign(state,initialState());saveState();renderCourseNav();renderHomeCourses();renderCourseListing();if(currentLesson)renderLesson()}});
 renderCourseNav();renderHomeCourses();renderStats();renderCourseListing();
+enableMotionFX();
 $("#soundToggle").classList.toggle("muted",!state.soundEnabled);$("#soundToggle").setAttribute("aria-pressed",String(state.soundEnabled));$("#soundToggle").setAttribute("aria-label",state.soundEnabled?"Silenciar sonidos":"Activar sonidos");
 
