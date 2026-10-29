@@ -431,6 +431,7 @@ function makeExtendedLesson(course,index){
 for(const course of courseCatalog){const existing=courseLessons(course.id).length;for(let count=existing;count<60;count++)lessons.push(makeExtendedLesson(course,count));}
 
 const phaseNames = ["Aprende","Construye","Modifica","Depura","Desafío"];
+const ENERGY_CAP=5,ENERGY_RECHARGE_MS=30*60*1000;
 let currentUser=null,authMode="signin",syncTimer=null;
 const authConfig=window.LAZARUS_SUPABASE||{};
 const authClient=authConfig.url&&authConfig.anonKey&&window.supabase?.createClient?window.supabase.createClient(authConfig.url,authConfig.anonKey):null;
@@ -440,11 +441,26 @@ let currentLesson = null, currentPhase = 0, activeView = "home";
 let audioContext=null;
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-function initialState(){return {xp:0,completed:{},phaseDone:{},drafts:{},attempts:0,hints:0,lastLesson:"cpp1",selectedCourse:"cpp",soundEnabled:true}}
+function initialState(){return {xp:0,completed:{},phaseDone:{},drafts:{},attempts:0,hints:0,lastLesson:"cpp1",selectedCourse:"cpp",soundEnabled:true,energy:{current:ENERGY_CAP,updatedAt:Date.now()}}}
 function loadState(){try{return {...initialState(),...JSON.parse(localStorage.getItem("codexAcademyState"))}}catch(e){return initialState()}}
 function persistState(){const key=currentUser?`lazarusAcademyState:${currentUser.id}`:"codexAcademyState";try{localStorage.setItem(key,JSON.stringify(state))}catch(e){}if(currentUser&&authClient){clearTimeout(syncTimer);syncTimer=setTimeout(syncProgress,650)}}
 function saveState(){persistState();renderStats()}
 async function syncProgress(){if(!currentUser||!authClient)return;const {error}=await authClient.from("lazarus_progress").upsert({user_id:currentUser.id,progress:state,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error){console.error("No se pudo sincronizar el progreso",error);$("#saveStatus").textContent="Sin conexión · guardado localmente"}else $("#saveStatus").textContent="Progreso sincronizado en la nube"}
+function getEnergyState(){
+ const now=Date.now(),existing=state.energy||{},energy={current:Number.isFinite(existing.current)?Math.max(0,Math.min(ENERGY_CAP,Math.floor(existing.current))):ENERGY_CAP,updatedAt:Number.isFinite(existing.updatedAt)?existing.updatedAt:now};
+ let changed=!state.energy||energy.current!==existing.current||energy.updatedAt!==existing.updatedAt;
+ if(energy.current<ENERGY_CAP){const elapsed=Math.max(0,now-energy.updatedAt),restored=Math.floor(elapsed/ENERGY_RECHARGE_MS);if(restored>0){energy.current=Math.min(ENERGY_CAP,energy.current+restored);energy.updatedAt=energy.current===ENERGY_CAP?now:energy.updatedAt+restored*ENERGY_RECHARGE_MS;changed=true}}
+ state.energy=energy;return {energy,changed};
+}
+function energyWaitLabel(energy){if(energy.current>=ENERGY_CAP)return "Tu energía está completa.";const elapsed=Math.max(0,Date.now()-energy.updatedAt),left=ENERGY_RECHARGE_MS-(elapsed%ENERGY_RECHARGE_MS),minutes=Math.floor(left/60000),seconds=Math.floor(left%60000/1000);return `Siguiente punto en ${minutes}:${String(seconds).padStart(2,"0")}.`}
+function renderEnergyUI(){
+ const {energy,changed}=getEnergyState();if(changed)persistState();
+ const count=`${energy.current}/${ENERGY_CAP}`,countEl=$("#energyCount"),dialogCount=$("#energyDialogCount"),timer=$("#energyTimer"),pips=$("#energyPips");
+ if(countEl)countEl.textContent=count;if(dialogCount)dialogCount.textContent=count;if(timer)timer.textContent=energyWaitLabel(energy);
+ if(pips&&pips.dataset.current!==String(energy.current)){pips.dataset.current=String(energy.current);pips.innerHTML=Array.from({length:ENERGY_CAP},(_,i)=>`<span class="energy-pip${i<energy.current?" filled":""}" aria-hidden="true"></span>`).join("")}
+ const checkButton=$("#checkCode");if(checkButton){checkButton.disabled=energy.current===0;checkButton.textContent=energy.current===0?"Sin energía · espera para responder":"Revisar mi código ✓"}
+}
+function spendEnergy(){const {energy}=getEnergyState();if(energy.current<1){renderEnergyUI();return false}if(energy.current===ENERGY_CAP)energy.updatedAt=Date.now();energy.current--;state.energy=energy;persistState();renderEnergyUI();return true}
 function getLesson(id){return lessons.find(l=>l.id===id)}
 function getCourse(id){return courseCatalog.find(c=>c.id===id)||{id,name:id.toUpperCase(),badge:id.toUpperCase(),icon:id,description:"Ruta de aprendizaje"}}
 function courseLessons(course){return lessons.filter(l=>l.course===course)}
@@ -458,13 +474,14 @@ function renderStats(){
  courseCatalog.forEach(course=>{const total=courseLessons(course.id).length,done=courseLessons(course.id).filter(l=>isDone(l.id)).length,bar=document.querySelector(`[data-course-bar="${course.id}"]`),count=document.querySelector(`[data-course-count="${course.id}"]`);if(bar)bar.style.width=Math.round(done/total*100)+"%";if(count)count.textContent=`${done} de ${total} módulos completados`});
  $("#progressXP").textContent=state.xp;$("#progressRank").textContent=rank();$("#progressLessons").textContent=`${done}/${lessons.length}`;
  const attemptsEl=$("#progressAttempts"),hintsEl=$("#progressHints");if(attemptsEl)attemptsEl.textContent=state.attempts||0;if(hintsEl)hintsEl.textContent=state.hints||0;
- renderProgressList();
+ renderProgressList();renderEnergyUI();
 }
 function closeMobileMenu(){const sidebar=$("#sidebar"),button=$("#mobileMenu"),scrim=$("#mobileScrim");sidebar.classList.remove("open");document.body.classList.remove("menu-open");button.setAttribute("aria-expanded","false");scrim.hidden=true}
 function switchView(name){
  activeView=name;$$(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));
  $$(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
- $("#crumb").textContent=({home:"PANEL PRINCIPAL",courses:"RUTAS DE APRENDIZAJE",progress:"MI PROGRESO",lesson:"SESIÓN DE ESTUDIO"})[name]||"ACADEMIA";
+ $$(".mobile-nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
+ $("#crumb").textContent=({home:"APRENDER",courses:"TUS RUTAS",progress:"MI PROGRESO",lesson:"LECCIÓN"})[name]||"APRENDER";
  closeMobileMenu();window.scrollTo({top:0,behavior:"smooth"});
  if(name==="courses")renderCourseListing();
 }
@@ -475,26 +492,20 @@ function renderCourseNav(){
  const nav=$("#courseNav");if(!nav)return;nav.innerHTML="";
  courseCatalog.forEach(course=>{const button=document.createElement("button");button.className="course-link";button.dataset.course=course.id;button.innerHTML=`${courseLogo(course)}<span><b>${escapeHTML(course.name)}</b><small>${escapeHTML(course.description)}</small></span><span class="chevron" aria-hidden="true">›</span>`;button.addEventListener("click",()=>openCourse(course.id));nav.appendChild(button)});
 }
+function renderPathNodes(course,group,offset=0){
+ const all=courseLessons(course.id);
+ return `<div class="lesson-path">${group.map((lesson,index)=>{const courseIndex=offset+index,done=isDone(lesson.id),locked=courseIndex>0&&!isDone(all[courseIndex-1].id),active=!done&&!locked,status=done?"completada":locked?"bloqueada":"disponible",glyph=done?"✓":locked?"⌑":"★";return `<div class="path-step ${done?"done":""} ${locked?"locked":""} ${active?"current":""}"><button class="path-node" type="button" data-lesson-id="${lesson.id}" aria-label="${escapeHTML(lesson.title)} · ${status}" ${locked?"disabled":""}><span aria-hidden="true">${glyph}</span></button><span class="path-label">${escapeHTML(lesson.short||lesson.title)}</span></div>`}).join("")}</div>`;
+}
+function connectPathNodes(root){root.querySelectorAll("[data-lesson-id]").forEach(button=>button.addEventListener("click",()=>openLesson(button.dataset.lessonId)))}
 function renderHomeCourses(){
- const holder=$("#homeCourseGrid");if(!holder)return;holder.innerHTML="";
- courseCatalog.forEach(course=>{const total=courseLessons(course.id).length,done=courseLessons(course.id).filter(l=>isDone(l.id)).length,card=document.createElement("article");card.className="route-card course-route";
-  card.innerHTML=`<div class="route-head">${courseLogo(course,"big")}<span class="level-pill">${course.id==="sql"?"POSTGRESQL":"DESDE CERO"}</span></div><h3>${escapeHTML(course.name)}</h3><p>${escapeHTML(course.description)}</p><div class="route-meta"><span>${total} módulos</span><span>Aprendizaje progresivo</span></div><div class="progress-track"><div class="progress-fill ${course.id==="sql"?"sql-fill":""}" data-course-bar="${course.id}" style="width:${Math.round(done/total*100)}%"></div></div><div class="route-foot"><span data-course-count="${course.id}">${done} de ${total} módulos completados</span><button class="btn btn-outline" type="button">Explorar curso <span aria-hidden="true">→</span></button></div>`;
-  card.querySelector("button").addEventListener("click",()=>openCourse(course.id));holder.appendChild(card);
- });
+ const holder=$("#homeCourseGrid");if(!holder)return;const course=getCourse(state.selectedCourse),all=courseLessons(course.id),next=all.findIndex(lesson=>!isDone(lesson.id)),start=next<0?Math.max(0,all.length-10):Math.floor(next/10)*10,group=all.slice(start,start+10),done=all.filter(isDone).length,unit=Math.floor(start/10)+1;
+ holder.className="home-path-preview";holder.innerHTML=`<section class="path-unit unit-tone-${(unit-1)%6+1}"><div class="unit-banner"><span class="unit-course-logo">${courseLogo(course)}</span><div class="unit-copy"><small>UNIDAD ${unit} · ${escapeHTML(course.name.toUpperCase())}</small><h3>${escapeHTML(group[0]?.title||course.name)}</h3><p>${done} de ${all.length} módulos completados</p></div><button class="unit-menu" type="button" data-view="courses" aria-label="Ver toda la ruta">···</button></div>${renderPathNodes(course,group,start)}<button class="path-more" type="button" data-view="courses">Ver los ${all.length} módulos de ${escapeHTML(course.name)} →</button></section>`;
+ connectPathNodes(holder);
 }
 function renderCourseListing(){
- const holder=$("#courseListing");holder.innerHTML="";
- courseCatalog.forEach(course=>{
-  const section=document.createElement("div");section.className="course-section";
-  section.innerHTML=`<div class="course-section-head"><span class="course-icon logo-icon"><img src="assets/logos/${course.icon}.svg" alt="" aria-hidden="true"></span><div><h2>${escapeHTML(course.name)}</h2><p>${escapeHTML(course.description)} · ${courseLessons(course.id).length} módulos</p></div></div><div class="lesson-list"></div>`;
-  const list=section.querySelector(".lesson-list");
-  courseLessons(course.id).forEach((l,i)=>{
-   const locked=i>0&&!isDone(courseLessons(course.id)[i-1].id),row=document.createElement("div");
-   row.className="lesson-row"+(isDone(l.id)?" done":"")+(locked?" locked":"");
-   row.innerHTML=`<div class="lesson-number">${isDone(l.id)?"✓":String(i+1).padStart(2,"0")}</div><div class="lesson-row-main"><b>${l.title}</b><small>${l.short} · ${l.duration} · ${l.difficulty}</small></div><button class="row-action" ${locked?"disabled":""}>${isDone(l.id)?"Repasar":"Comenzar"} →</button>`;
-   row.querySelector("button").addEventListener("click",()=>openLesson(l.id));list.appendChild(row);
-  });holder.appendChild(section);
- });
+ const holder=$("#courseListing");if(!holder)return;const course=getCourse(state.selectedCourse),all=courseLessons(course.id),done=all.filter(isDone).length,pct=Math.round(done/Math.max(1,all.length)*100);
+ holder.innerHTML=`<div class="course-map-head"><div class="course-map-brand">${courseLogo(course,"big")}<div><span class="eyebrow muted">RUTA DE PROGRAMACIÓN</span><h2>${escapeHTML(course.name)}</h2><p>${escapeHTML(course.description)}</p></div></div><label class="course-picker-label">CAMBIAR LENGUAJE<select id="coursePicker" aria-label="Cambiar lenguaje">${courseCatalog.map(item=>`<option value="${item.id}" ${item.id===course.id?"selected":""}>${escapeHTML(item.name)}</option>`).join("")}</select></label><div class="course-map-progress"><strong>${done}/${all.length}</strong><span>módulos</span><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div></div></div><div class="course-map-units">${Array.from({length:Math.ceil(all.length/10)},(_,unit)=>{const start=unit*10,group=all.slice(start,start+10),unitDone=group.filter(isDone).length;return `<section class="path-unit unit-tone-${unit%6+1}"><div class="unit-banner"><span class="unit-mark">${String(unit+1).padStart(2,"0")}</span><div class="unit-copy"><small>UNIDAD ${unit+1}</small><h3>${escapeHTML(group[0]?.title||course.name)}</h3><p>${unitDone} de ${group.length} módulos completados · ${escapeHTML(group[0]?.difficulty||"Principiante")}</p></div><span class="unit-menu" aria-hidden="true">···</span></div>${renderPathNodes(course,group,start)}</section>`}).join("")}</div>`;
+ $("#coursePicker").addEventListener("change",event=>openCourse(event.target.value));connectPathNodes(holder);
 }
 function renderProgressList(){
  const holder=$("#progressListing");if(!holder)return;holder.innerHTML="";
@@ -543,7 +554,7 @@ function renderExercise(p,holder,l,index){
  const draftKey=l.id+"-"+index, saved=state.drafts[draftKey],initial=saved!==undefined?saved:p.starter;
  const req=p.requirements.map(x=>`<li>${escapeHTML(x)}</li>`).join("");
  card.innerHTML=`<div class="exercise-head"><div class="task-label">FASE ${index+1} · ${p.name.toUpperCase()}</div><h2>${p.title}</h2><p>${p.body}</p><ul class="requirements">${req}</ul></div><div class="editor-toolbar"><span>EDITOR DE CÓDIGO · ${escapeHTML(getCourse(l.course).name)}</span><div class="editor-actions"><button class="small-btn" id="hintBtn">Ver pista</button><button class="small-btn" id="solutionBtn">Ver solución</button><button class="small-btn" id="copyCode">Copiar</button><button class="small-btn" id="resetEditor">Restablecer</button></div></div><textarea class="code-editor" id="codeEditor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Editor de código"></textarea><div class="editor-footer"><small>Consejo: usa Tab para indentar. Ctrl + Enter para revisar.</small><button class="btn btn-primary" id="checkCode">Revisar mi código ✓</button></div><div class="hint-panel" id="hintPanel"><b>Pista:</b> ${p.hint}</div><div class="solution-panel" id="solutionPanel"><b>Una solución posible:</b><pre>${escapeHTML(p.solution)}</pre><small>Estudia la estructura, cierra la solución e inténtalo por tu cuenta.</small></div><div class="feedback" id="feedback"></div>`;
- holder.appendChild(card);const editor=$("#codeEditor");editor.value=initial;
+ holder.appendChild(card);const editor=$("#codeEditor");editor.value=initial;renderEnergyUI();
  editor.addEventListener("input",()=>{state.drafts[draftKey]=editor.value;persistState()});
  editor.addEventListener("keydown",e=>{if(e.key==="Tab"){e.preventDefault();const start=editor.selectionStart,end=editor.selectionEnd;editor.setRangeText("    ",start,end,"end");editor.dispatchEvent(new Event("input"))}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();checkExercise(p,l,index,editor.value)}});
  $("#hintBtn").addEventListener("click",()=>{const panel=$("#hintPanel"),opening=!panel.classList.contains("show"),usedKey="hint-"+draftKey;panel.classList.toggle("show");if(opening&&!state[usedKey]){state[usedKey]=true;state.hints++;saveState()}});
@@ -562,6 +573,8 @@ function renderExercise(p,holder,l,index){
  if(state.phaseDone[l.id+"-"+index]){$("#nextPhase").textContent=index===4?"Terminar sesión ✓":"Fase completada · continuar →"}
 }
 function checkExercise(p,l,index,code){
+ const {energy}=getEnergyState();if(energy.current<1){renderEnergyUI();if(!$("#energyDialog").open)$("#energyDialog").showModal();return}
+ if(!spendEnergy())return;
  state.attempts++;state.attemptByExercise=state.attemptByExercise||{};const attemptKey=l.id+"-"+index;state.attemptByExercise[attemptKey]=(state.attemptByExercise[attemptKey]||0)+1;saveState();
  const feedback=$("#feedback");const normalized=code.trim();
  if(!normalized){feedback.className="feedback show error";feedback.innerHTML="<strong>Prueba con una primera línea.</strong> El editor está vacío; revisa la pista si necesitas una idea para empezar.";playFeedbackSound(false);animateAnswer(feedback.closest(".exercise-card"),false);return}
@@ -631,15 +644,20 @@ function showAuthError(error){
  showAuthMessage(message||"No se pudo completar la operación.",true);
 }
 function initializeAuth(){renderAuthStatus();if(!authClient){$("#saveStatus").textContent="Configura Supabase para activar tu cuenta";$("#authDialog").showModal();showAuthMessage("Configura Supabase para activar el inicio de sesión y sincronizar el progreso. Consulta SETUP.md.",true);return}$("#authDialog").showModal();authClient.auth.getSession().then(({data})=>{if(data.session?.user)loadUserProgress(data.session.user);else showAuthMessage("Inicia sesión o crea una cuenta para entrar a Lazarus Academy.")}).catch(error=>showAuthMessage(error.message||"No se pudo comprobar la sesión. Revisa tu conexión e inténtalo de nuevo.",true))}
+document.addEventListener("click",event=>{const viewButton=event.target.closest("[data-view]");if(viewButton)switchView(viewButton.dataset.view)});
 $("#accountButton").addEventListener("click",()=>{if(!currentUser)setAuthMode("signin");renderAuthStatus();if(!authClient)showAuthMessage("Configura la URL y la clave pública de Supabase en supabase-config.js y ejecuta supabase/schema.sql para activar cuentas compartidas.");$("#authDialog").showModal()});
 $("#authClose").addEventListener("click",()=>{if(currentUser)$("#authDialog").close()});
 $("#authDialog").addEventListener("cancel",event=>{if(!currentUser){event.preventDefault();showAuthMessage("Inicia sesión o crea una cuenta para entrar a Lazarus Academy.")}});
+$("#energyButton").addEventListener("click",()=>$("#energyDialog").showModal());
+$("#energyClose").addEventListener("click",()=>$("#energyDialog").close());
+$("#energyCloseAction").addEventListener("click",()=>$("#energyDialog").close());
+$("#energyDialog").addEventListener("click",event=>{if(event.target===$("#energyDialog"))$("#energyDialog").close()});
+setInterval(renderEnergyUI,1000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderEnergyUI()});
 $("#authSignInTab").addEventListener("click",()=>setAuthMode("signin"));
 $("#authSignUpTab").addEventListener("click",()=>setAuthMode("signup"));
 $("#authForm").addEventListener("submit",async event=>{event.preventDefault();if(!authClient){showAuthMessage("Falta conectar Supabase. Sigue los pasos de SETUP.md para habilitar cuentas.",true);return}const email=$("#authEmail").value.trim(),password=$("#authPassword").value,button=$("#authSubmit");button.disabled=true;showAuthMessage(authMode==="signup"?"Creando tu cuenta…":"Iniciando sesión…");try{if(authMode==="signup"){const username=$("#authName").value.trim();const redirectTo=new URL(".",window.location.href).href;const {data,error}=await authClient.auth.signUp({email,password,options:{emailRedirectTo:redirectTo,data:{username}}});if(error)throw error;if(data.session?.user){await loadUserProgress(data.session.user)}else showAuthMessage("Cuenta creada. Abre el correo de confirmación; al confirmarlo, volverás a Lazarus Academy con la sesión iniciada.")}else{const {data,error}=await authClient.auth.signInWithPassword({email,password});if(error)throw error;if(data.user){await loadUserProgress(data.user)}}}catch(error){showAuthError(error)}finally{button.disabled=false}});
 $("#authLogout").addEventListener("click",async()=>{if(authClient)await authClient.auth.signOut();currentUser=null;setAuthMode("signin");Object.assign(state,initialState(),loadState());document.body.classList.add("auth-locked");renderAuthStatus();renderCourseNav();renderHomeCourses();renderCourseListing();renderStats();if(currentLesson)renderLesson();if(!$("#authDialog").open)$("#authDialog").showModal();showAuthMessage("Sesión cerrada. Inicia sesión para continuar.")});
 initializeAuth();
-$$("[data-view]").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
 $("#continueBtn").addEventListener("click",()=>{const remembered=getLesson(state.lastLesson);const next=remembered&&!isDone(remembered.id)?remembered:(lessons.find(l=>!isDone(l.id))||lessons[0]);openLesson(next.id)});
 $("#backToCourse").addEventListener("click",()=>openCourse(currentLesson.course));
 $("#mobileMenu").addEventListener("click",()=>{const open=!$("#sidebar").classList.contains("open");if(open){$("#sidebar").classList.add("open");$("#mobileScrim").hidden=false;document.body.classList.add("menu-open");$("#mobileMenu").setAttribute("aria-expanded","true")}else closeMobileMenu()});
