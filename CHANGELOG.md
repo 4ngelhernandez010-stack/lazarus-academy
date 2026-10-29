@@ -2,6 +2,15 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.3.0 — Lección en foco
+
+**29 de octubre de 2026**
+
+- El navegador de fases muestra las cinco etapas a la vez en teléfonos; ya no queda una sola fase visible ocupando toda la fila.
+- Panel de avance más compacto y con mensajes que cambian según el estado de la fase.
+- Encabezado de la lección con mejor jerarquía y menos espacio vertical.
+- Indicadores accesibles para la fase actual y el avance de la sesión.
+
 ## v1.2.0 — Movimiento vivo
 
 **29 de octubre de 2026**
