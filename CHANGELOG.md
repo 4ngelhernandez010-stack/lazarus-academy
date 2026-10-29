@@ -2,6 +2,15 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.2.0 — Movimiento vivo
+
+**29 de octubre de 2026**
+
+- Animaciones de entrada al desplazarse por rutas, estadísticas y lecciones.
+- Efectos interactivos en tarjetas, navegación, botones y experiencia acumulada.
+- Banner con brillo ambiental y señales visuales animadas.
+- Las animaciones respetan la preferencia del dispositivo para reducir el movimiento.
+
 ## v1.1.0 — Aula móvil
 
 **29 de octubre de 2026**
