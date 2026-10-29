@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b1020">
+  <meta name="application-version" content="1.1.0">
   <meta name="description" content="Lazarus Academy: 840 módulos para aprender 14 lenguajes desde cero. Crea una cuenta y sincroniza tu progreso.">
   <title>Lazarus Academy — Aprende haciendo</title>
   <link rel="icon" href="assets/lazarus-logo.svg" type="image/svg+xml">
@@ -25,12 +26,14 @@
       <div class="sidebar-bottom">
         <div class="mini-status"><span class="status-dot"></span><div><b id="accountStatus">Modo invitado</b><small id="saveStatus">Avance guardado en este dispositivo</small></div></div>
         <button class="reset-link" id="resetProgress">Reiniciar progreso</button>
+        <small class="app-version">v1.1.0 · Aula móvil</small>
       </div>
     </aside>
+    <button class="mobile-scrim" id="mobileScrim" type="button" aria-label="Cerrar menú" hidden></button>
 
     <main class="main-area">
       <header class="topbar">
-        <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
         <div class="breadcrumb">ACADEMIA <span>/</span> <b id="crumb">PANEL PRINCIPAL</b></div>
         <div class="topbar-right"><button class="sound-toggle" id="soundToggle" type="button" aria-label="Silenciar sonidos" aria-pressed="true" title="Sonidos activados"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a5 5 0 0 1 0 6M18.5 6.5a9 9 0 0 1 0 11"/></svg></button><span class="streak"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.5 5.2L19 10l-5.5 1.8L12 17l-1.5-5.2L5 10l5.5-1.8L12 3Z"/></svg> <b id="topXp">0 XP</b></span><button class="account-button" id="accountButton" type="button"><span class="avatar" id="accountAvatar">L</span><span id="accountButtonText">Iniciar sesión</span></button></div>
       </header>
@@ -111,4 +114,5 @@
   <script src="app.js"></script>
 </body>
 </html>
+
 
