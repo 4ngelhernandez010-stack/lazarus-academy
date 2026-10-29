@@ -460,11 +460,12 @@ function renderStats(){
  const attemptsEl=$("#progressAttempts"),hintsEl=$("#progressHints");if(attemptsEl)attemptsEl.textContent=state.attempts||0;if(hintsEl)hintsEl.textContent=state.hints||0;
  renderProgressList();
 }
+function closeMobileMenu(){const sidebar=$("#sidebar"),button=$("#mobileMenu"),scrim=$("#mobileScrim");sidebar.classList.remove("open");document.body.classList.remove("menu-open");button.setAttribute("aria-expanded","false");scrim.hidden=true}
 function switchView(name){
  activeView=name;$$(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));
  $$(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
  $("#crumb").textContent=({home:"PANEL PRINCIPAL",courses:"RUTAS DE APRENDIZAJE",progress:"MI PROGRESO",lesson:"SESIÓN DE ESTUDIO"})[name]||"ACADEMIA";
- $("#sidebar").classList.remove("open");window.scrollTo({top:0,behavior:"smooth"});
+ closeMobileMenu();window.scrollTo({top:0,behavior:"smooth"});
  if(name==="courses")renderCourseListing();
 }
 function courseLogo(course,size=""){
@@ -621,7 +622,9 @@ initializeAuth();
 $$("[data-view]").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
 $("#continueBtn").addEventListener("click",()=>{const remembered=getLesson(state.lastLesson);const next=remembered&&!isDone(remembered.id)?remembered:(lessons.find(l=>!isDone(l.id))||lessons[0]);openLesson(next.id)});
 $("#backToCourse").addEventListener("click",()=>openCourse(currentLesson.course));
-$("#mobileMenu").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
+$("#mobileMenu").addEventListener("click",()=>{const open=!$("#sidebar").classList.contains("open");if(open){$("#sidebar").classList.add("open");$("#mobileScrim").hidden=false;document.body.classList.add("menu-open");$("#mobileMenu").setAttribute("aria-expanded","true")}else closeMobileMenu()});
+$("#mobileScrim").addEventListener("click",closeMobileMenu);
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&$("#sidebar").classList.contains("open"))closeMobileMenu()});
 $("#soundToggle").addEventListener("click",()=>{state.soundEnabled=!state.soundEnabled;const button=$("#soundToggle");button.setAttribute("aria-pressed",String(state.soundEnabled));button.setAttribute("aria-label",state.soundEnabled?"Silenciar sonidos":"Activar sonidos");button.title=state.soundEnabled?"Sonidos activados":"Sonidos silenciados";button.classList.toggle("muted",!state.soundEnabled);saveState();if(state.soundEnabled)playFeedbackSound(true)});
 $("#resetProgress").addEventListener("click",()=>{if(confirm("¿Seguro que quieres borrar todo tu progreso, XP y códigos guardados en tu cuenta?")){Object.assign(state,initialState());saveState();renderCourseNav();renderHomeCourses();renderCourseListing();if(currentLesson)renderLesson()}});
 renderCourseNav();renderHomeCourses();renderStats();renderCourseListing();
