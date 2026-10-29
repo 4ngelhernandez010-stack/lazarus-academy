@@ -2,6 +2,17 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.4.0 — Camino de código
+
+**29 de octubre de 2026**
+
+- Rutas de cursos organizadas como un camino visual con unidades de diez módulos y estados de avance.
+- Navegación de aprendizaje, rutas y progreso con barra inferior en móviles.
+- Energía para respuestas: 5 puntos iniciales, consume 1 por cada revisión y recupera 1 cada 30 minutos.
+- Al agotarse la energía se conserva el editor y el progreso; se puede seguir leyendo mientras se recupera.
+- Indicador y panel de energía con contador regresivo, señales visuales y acceso desde el encabezado.
+- Vistas dinámicas de los módulos siguen abriendo rutas al cambiar de sección.
+
 ## v1.3.0 — Lección en foco
 
 **29 de octubre de 2026**
