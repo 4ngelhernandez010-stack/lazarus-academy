@@ -2,6 +2,14 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.5.3 — Azul y verde
+
+**29 de octubre de 2026**
+
+- Interfaz unificada con blanco para superficies, Bright Green (#58CC02) para botones y progreso; Dodger Blue (#1CB0F6) para acentos, enlaces y selecciones.
+- Tarjetas, encabezado y navegación móvil ahora tienen fondos claros, texto oscuro y contraste legible.
+- Se mantiene el editor de código oscuro para separar el área de práctica del contenido de lectura.
+
 ## v1.4.0 — Camino de código
 
 **29 de octubre de 2026**
