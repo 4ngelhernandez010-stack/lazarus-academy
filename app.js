@@ -441,7 +441,7 @@ let currentLesson = null, currentPhase = 0, activeView = "home";
 let audioContext=null;
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-function initialState(){return {xp:0,completed:{},phaseDone:{},drafts:{},attempts:0,hints:0,lastLesson:"cpp1",selectedCourse:"cpp",soundEnabled:true,energy:{current:ENERGY_CAP,updatedAt:Date.now()}}}
+function initialState(){return {xp:0,completed:{},phaseDone:{},drafts:{},attempts:0,hints:0,lastLesson:"cpp1",selectedCourse:"cpp",soundEnabled:true,energy:{current:ENERGY_CAP,updatedAt:Date.now()},dailyStreak:{days:0,best:0,lastDay:""}}}
 function loadState(){try{return {...initialState(),...JSON.parse(localStorage.getItem("codexAcademyState"))}}catch(e){return initialState()}}
 function persistState(){const key=currentUser?`lazarusAcademyState:${currentUser.id}`:"codexAcademyState";try{localStorage.setItem(key,JSON.stringify(state))}catch(e){}if(currentUser&&authClient){clearTimeout(syncTimer);syncTimer=setTimeout(syncProgress,650)}}
 function saveState(){persistState();renderStats()}
@@ -461,6 +461,11 @@ function renderEnergyUI(){
  const checkButton=$("#checkCode");if(checkButton){checkButton.disabled=energy.current===0;checkButton.textContent=energy.current===0?"Sin energía · espera para responder":"Revisar mi código ✓"}
 }
 function spendEnergy(){const {energy}=getEnergyState();if(energy.current<1){renderEnergyUI();return false}if(energy.current===ENERGY_CAP)energy.updatedAt=Date.now();energy.current--;state.energy=energy;persistState();renderEnergyUI();return true}
+function localDayKey(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`}
+function dayDistance(from,to){if(!from||!to)return Infinity;const [fy,fm,fd]=from.split("-").map(Number),[ty,tm,td]=to.split("-").map(Number);return Math.round((Date.UTC(ty,tm-1,td)-Date.UTC(fy,fm-1,fd))/86400000)}
+function currentDailyStreak(){const saved=state.dailyStreak||{days:0,best:0,lastDay:""},today=localDayKey(),gap=dayDistance(saved.lastDay,today);return {days:gap<=1?Math.max(0,Number(saved.days)||0):0,best:Math.max(0,Number(saved.best)||0),lastDay:saved.lastDay||"",today,completedToday:saved.lastDay===today}}
+function recordDailyStreak(){const old=state.dailyStreak||{days:0,best:0,lastDay:""},today=localDayKey();if(old.lastDay===today)return false;const days=dayDistance(old.lastDay,today)===1?(Number(old.days)||0)+1:1;state.dailyStreak={days,best:Math.max(Number(old.best)||0,days),lastDay:today};return true}
+function renderDailyStreak(){const streak=currentDailyStreak(),count=$("#streakCount"),value=$("#dailyStreakDays"),message=$("#dailyStreakMessage"),best=$("#bestStreak"),bar=$("#dailyStreakProgress");if(count)count.textContent=String(streak.days);if(value)value.textContent=String(streak.days);if(best)best.textContent=`Mejor racha: ${streak.best} ${streak.best===1?"día":"días"}`;if(message)message.textContent=streak.completedToday?"¡Meta diaria completada! Vuelve mañana para mantener tu racha.":streak.days?"Completa una lección hoy para conservar tu racha.":"Completa una lección para iniciar tu racha diaria.";if(bar){bar.style.width=streak.completedToday?"100%":"0%";const track=bar.parentElement;track?.setAttribute("aria-valuenow",streak.completedToday?"1":"0")}}
 function getLesson(id){return lessons.find(l=>l.id===id)}
 function getCourse(id){return courseCatalog.find(c=>c.id===id)||{id,name:id.toUpperCase(),badge:id.toUpperCase(),icon:id,description:"Ruta de aprendizaje"}}
 function courseLessons(course){return lessons.filter(l=>l.course===course)}
@@ -474,7 +479,7 @@ function renderStats(){
  courseCatalog.forEach(course=>{const total=courseLessons(course.id).length,done=courseLessons(course.id).filter(l=>isDone(l.id)).length,bar=document.querySelector(`[data-course-bar="${course.id}"]`),count=document.querySelector(`[data-course-count="${course.id}"]`);if(bar)bar.style.width=Math.round(done/total*100)+"%";if(count)count.textContent=`${done} de ${total} módulos completados`});
  $("#progressXP").textContent=state.xp;$("#progressRank").textContent=rank();$("#progressLessons").textContent=`${done}/${lessons.length}`;
  const attemptsEl=$("#progressAttempts"),hintsEl=$("#progressHints");if(attemptsEl)attemptsEl.textContent=state.attempts||0;if(hintsEl)hintsEl.textContent=state.hints||0;
- renderProgressList();renderEnergyUI();
+ renderProgressList();renderDailyStreak();renderEnergyUI();
 }
 function closeMobileMenu(){const sidebar=$("#sidebar"),button=$("#mobileMenu"),scrim=$("#mobileScrim");sidebar.classList.remove("open");document.body.classList.remove("menu-open");button.setAttribute("aria-expanded","false");scrim.hidden=true}
 function switchView(name){
@@ -492,9 +497,28 @@ function renderCourseNav(){
  const nav=$("#courseNav");if(!nav)return;nav.innerHTML="";
  courseCatalog.forEach(course=>{const button=document.createElement("button");button.className="course-link";button.dataset.course=course.id;button.innerHTML=`${courseLogo(course)}<span><b>${escapeHTML(course.name)}</b><small>${escapeHTML(course.description)}</small></span><span class="chevron" aria-hidden="true">›</span>`;button.addEventListener("click",()=>openCourse(course.id));nav.appendChild(button)});
 }
+function pathNodeIcon(type){
+ const icons={
+  star:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="m24 5 5.8 11.8 13 1.9-9.4 9.2 2.2 13L24 34.8l-11.6 6.1 2.2-13L5.2 18.7l13-1.9L24 5Z"/></svg>',
+  dumbbell:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 17v14M14 12v24M34 12v24M40 17v14M14 24h20"/></svg>',
+  headphones:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 26v-4a16 16 0 0 1 32 0v4M8 24h7v14H8a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3ZM40 24h-7v14h7a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3Z"/></svg>',
+  chest:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 19h34v23H7zM5 19l4-9h30l4 9M24 10v32M7 26h34M21 19v7h6v-7"/></svg>',
+  lock:'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="21" width="28" height="21" rx="4"/><path d="M16 21v-7a8 8 0 0 1 16 0v7M24 29v5"/></svg>',
+  check:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="m10 25 9 9 19-20"/></svg>'
+ };
+ return icons[type]||icons.star;
+}
+function pathNodeKind(lesson,courseIndex){
+ const title=lesson.title||"";
+ if(/reto|desaf[ií]o|proyecto|integrador/i.test(title))return "dumbbell";
+ if(/repaso|audio|escucha|comprensi[oó]n/i.test(title))return "headphones";
+ if(courseIndex%10===9)return "chest";
+ if(courseIndex%10===4)return "headphones";
+ return "star";
+}
 function renderPathNodes(course,group,offset=0){
  const all=courseLessons(course.id);
- return `<div class="lesson-path">${group.map((lesson,index)=>{const courseIndex=offset+index,done=isDone(lesson.id),locked=courseIndex>0&&!isDone(all[courseIndex-1].id),active=!done&&!locked,status=done?"completada":locked?"bloqueada":"disponible",glyph=done?"✓":locked?"⌑":"★";return `<div class="path-step ${done?"done":""} ${locked?"locked":""} ${active?"current":""}"><button class="path-node" type="button" data-lesson-id="${lesson.id}" aria-label="${escapeHTML(lesson.title)} · ${status}" ${locked?"disabled":""}><span aria-hidden="true">${glyph}</span></button><span class="path-label">${escapeHTML(lesson.short||lesson.title)}</span></div>`}).join("")}</div>`;
+ return `<div class="lesson-path">${group.map((lesson,index)=>{const courseIndex=offset+index,done=isDone(lesson.id),locked=courseIndex>0&&!isDone(all[courseIndex-1].id),active=!done&&!locked,status=done?"completada":locked?"bloqueada":"disponible",kind=done?"check":pathNodeKind(lesson,courseIndex);return `<div class="path-step ${done?"done":""} ${locked?"locked":""} ${active?"current":""}"><button class="path-node node-${kind}" type="button" data-lesson-id="${lesson.id}" aria-label="${escapeHTML(lesson.title)} · ${status}" ${locked?"disabled":""}>${pathNodeIcon(kind)}${locked?'<span class="node-lock-badge" aria-hidden="true">🔒</span>':""}</button><span class="path-label">${escapeHTML(lesson.short||lesson.title)}</span></div>`}).join("")}</div>`;
 }
 function connectPathNodes(root){root.querySelectorAll("[data-lesson-id]").forEach(button=>button.addEventListener("click",()=>openLesson(button.dataset.lessonId)))}
 function renderHomeCourses(){
@@ -591,7 +615,7 @@ function checkExercise(p,l,index,code){
 }
 function markPhase(id,index){state.phaseDone[id+"-"+index]=true;saveState();const link=document.querySelector(`[data-phase-index="${index}"]`);if(currentLesson&&currentLesson.id===id&&link){link.classList.add("complete");const number=link.querySelector(".phase-n");if(number)number.textContent="✓"}}
 function completeLesson(id){
- if(!state.completed[id]){state.completed[id]=true;state.xp+=25;saveState();showToast("Sesión completada · +25 XP")}
+ let changed=false;if(!state.completed[id]){state.completed[id]=true;state.xp+=25;changed=true;showToast("Sesión completada · +25 XP")}if(recordDailyStreak()){changed=true;showToast(`¡Racha diaria: ${state.dailyStreak.days} ${state.dailyStreak.days===1?"día":"días"}!`)}if(changed)saveState();
  const all=courseLessons(currentLesson.course),idx=all.findIndex(l=>l.id===id);
  if(idx<all.length-1){const next=all[idx+1];const holder=$("#lessonContent");holder.innerHTML=`<div class="finish-banner"><h2>✦ ¡Sesión completada!</h2><p>Has terminado <b>${currentLesson.title}</b>. La siguiente sesión aumenta un poco la dificultad. Tu avance queda guardado en este dispositivo.</p><button class="btn btn-primary" id="nextSession">Comenzar siguiente sesión →</button></div><div class="phase-card"><h2>Antes de continuar</h2><p>Explica con tus propias palabras qué aprendiste. Si no puedes, vuelve a la fase Aprende y repasa el ejemplo.</p></div>`;$("#nextSession").addEventListener("click",()=>openLesson(next.id))}
  else{const other=courseCatalog.find(course=>course.id!==currentLesson.course&&courseLessons(course.id).some(lesson=>!isDone(lesson.id)));holder.innerHTML=`<div class="finish-banner"><h2>¡Ruta completada!</h2><p>Terminaste los ${all.length} módulos de ${escapeHTML(getCourse(currentLesson.course).name)}. Has practicado construir, modificar, depurar y resolver retos.</p><button class="btn btn-primary" id="otherCourse">${other?`Explorar ${escapeHTML(other.name)} →`:"Volver a las rutas"}</button></div>`;$("#otherCourse").addEventListener("click",()=>other?openCourse(other.id):switchView("courses"));playFeedbackSound(true)}
