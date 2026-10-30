@@ -175,3 +175,5 @@ html,body{background:#fff;color:#182b38}body{color:#182b38}.app-shell,.main-area
 @media(hover:hover) and (pointer:fine){.course-menu-tile:hover,.course-menu-explore:hover{transform:translateY(-2px);border-color:#1CB0F6;box-shadow:0 8px 18px #1cb0f61b}}
 @media(max-width:600px){.course-menu-tile{grid-template-columns:50px minmax(0,1fr) 28px;min-height:88px;column-gap:11px;row-gap:1px}.course-menu-tile-progress{margin-top:1px;font-size:11px}}
 
+@media(hover:none),(pointer:coarse){.course-menu-tile:hover,.course-menu-explore:hover{transform:none;border-color:#dce5eb;background:#fff;box-shadow:none}.course-menu-tile.selected:hover{border-color:#1CB0F6;background:#f0faff;box-shadow:0 0 0 2px #1cb0f628}.course-menu-explore:hover{background:#f7fafc}}
+
