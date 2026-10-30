@@ -628,7 +628,7 @@ async function loadUserProgress(user){
  try{local=JSON.parse(localStorage.getItem(cacheKey)||"null")}catch(error){console.warn("No se pudo leer el progreso local",error)}
  Object.assign(state,initialState(),local||state);
  document.body.classList.remove("auth-locked");renderAuthStatus();renderCourseNav();renderHomeCourses();renderCourseListing();renderStats();if(currentLesson)renderLesson();if($("#authDialog").open)$("#authDialog").close();
- $("#saveStatus").textContent="Sincronizando progreso…";finishAppLoading();
+ $("#saveStatus").textContent="Sincronizando progreso…";
  try{
   const {data,error}=await authClient.from("lazarus_progress").select("progress").eq("user_id",user.id).maybeSingle();if(error)throw error;
   if(data?.progress){Object.assign(state,initialState(),data.progress);localStorage.setItem(cacheKey,JSON.stringify(state));$("#saveStatus").textContent="Progreso sincronizado en la nube";renderHomeCourses();renderCourseListing();renderStats();if(currentLesson)renderLesson()}
@@ -656,13 +656,12 @@ function showAuthError(error){
  }
  showAuthMessage(message||"No se pudo completar la operación.",true);
 }
-function finishAppLoading(){const loader=$("#appLoader");if(!loader||loader.dataset.dismissed)return;loader.dataset.dismissed="true";loader.classList.add("is-hidden");setTimeout(()=>loader.remove(),650)}
 function loadSupabaseLibrary(){
  if(window.supabase?.createClient)return Promise.resolve();
  return new Promise((resolve,reject)=>{const script=document.createElement("script"),timer=setTimeout(()=>{script.remove();reject(new Error("El servicio de cuentas está tardando. Comprueba tu conexión e inténtalo de nuevo."))},10000);script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";script.async=true;script.onload=()=>{clearTimeout(timer);resolve()};script.onerror=()=>{clearTimeout(timer);reject(new Error("No se pudo cargar el servicio de cuentas."))};document.head.appendChild(script)})
 }
 async function initializeAuth(){
- renderAuthStatus();$("#authDialog").showModal();finishAppLoading();
+ renderAuthStatus();$("#authDialog").showModal();
  if(!authConfig.url||!authConfig.anonKey){$("#saveStatus").textContent="Configura Supabase para activar tu cuenta";showAuthMessage("Configura el inicio de sesión y la sincronización en SETUP.md.",true);return}
  const submit=$("#authSubmit");submit.disabled=true;showAuthMessage("Conectando tu cuenta…");
  try{
