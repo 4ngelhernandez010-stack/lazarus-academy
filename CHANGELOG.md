@@ -2,37 +2,6 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
-## v1.5.2 — Panel visible
-
-**29 de octubre de 2026**
-
-- Corrección de un error de sintaxis que impedía iniciar el JavaScript y dejaba la pantalla en blanco en móviles.
-- El login y el panel vuelven a mostrarse con el inicio directo y la carga progresiva.
-
-## v1.5.1 — Inicio directo
-
-**29 de octubre de 2026**
-
-- Se quitó la pantalla de carga animada para entrar directamente a Lazarus Academy.
-- Se conservan la sincronización de progreso en segundo plano y la carga progresiva del historial.
-
-## v1.5.0 — Carga ligera
-
-**29 de octubre de 2026**
-
-- El panel aparece con el progreso local y la sesión se sincroniza con Supabase en segundo plano.
-- La pantalla de carga deja de esperar a la consulta de progreso en la nube.
-- El historial ya no construye 840 filas al iniciar: carga 50 cuando se abre y permite mostrar más por bloques.
-- Los scripts externos usan carga diferida para no bloquear el análisis del documento.
-
-## v1.4.1 — Entrada animada
-
-**29 de octubre de 2026**
-
-- Pantalla de bienvenida con el logo de Lazarus Academy, movimiento orbital y barra de progreso animada.
-- La entrada se mantiene mientras se restaura la sesión y el progreso; tiene un límite para no bloquear la web si la conexión tarda.
-- Adaptación para móviles y respeto a la preferencia de movimiento reducido.
-
 ## v1.4.0 — Camino de código
 
 **29 de octubre de 2026**
@@ -43,6 +12,7 @@ Desde esta edición, cada actualización tendrá un número secuencial y un nomb
 - Al agotarse la energía se conserva el editor y el progreso; se puede seguir leyendo mientras se recupera.
 - Indicador y panel de energía con contador regresivo, señales visuales y acceso desde el encabezado.
 - Vistas dinámicas de los módulos siguen abriendo rutas al cambiar de sección.
+- Corrección mínima de un error de sintaxis que impedía abrir el login y responder a los menús.
 
 ## v1.3.0 — Lección en foco
 
