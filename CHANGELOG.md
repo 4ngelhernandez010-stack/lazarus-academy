@@ -2,6 +2,13 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.5.2 — Panel visible
+
+**29 de octubre de 2026**
+
+- Corrección de un error de sintaxis que impedía iniciar el JavaScript y dejaba la pantalla en blanco en móviles.
+- El login y el panel vuelven a mostrarse con el inicio directo y la carga progresiva.
+
 ## v1.5.1 — Inicio directo
 
 **29 de octubre de 2026**
