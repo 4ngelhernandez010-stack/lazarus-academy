@@ -6,7 +6,7 @@ Desde esta edición, cada actualización tendrá un número secuencial y un nomb
 
 **29 de octubre de 2026**
 
-- El mapa usa estrellas en todos los escalones; se quitó la línea discontinua desalineada que cruzaba las etiquetas.
+- El mapa usa estrellas como único icono de módulo, sin candados: los bloqueados se ven grises y pasan a verde al desbloquearse. Se quitó la línea discontinua desalineada que cruzaba las etiquetas.
 - Energía ampliada a 30 respuestas, con recuperación de 1 punto cada 30 minutos. Las cuentas existentes reciben una conversión proporcional de su energía anterior de 5 puntos.
 - Se desactivó el zoom táctil del navegador y se mantiene el desplazamiento vertical.
 
