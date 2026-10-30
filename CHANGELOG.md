@@ -2,6 +2,14 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.5.7 — Camino y energía
+
+**29 de octubre de 2026**
+
+- El mapa usa estrellas en todos los escalones; se quitó la línea discontinua desalineada que cruzaba las etiquetas.
+- Energía ampliada a 30 respuestas, con recuperación de 1 punto cada 30 minutos. Las cuentas existentes reciben una conversión proporcional de su energía anterior de 5 puntos.
+- Se desactivó el zoom táctil del navegador y se mantiene el desplazamiento vertical.
+
 ## v1.5.6 — Catálogo ordenado
 
 **29 de octubre de 2026**
