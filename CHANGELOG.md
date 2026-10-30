@@ -2,6 +2,14 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.5.5 — Selector de cursos
+
+**29 de octubre de 2026**
+
+- El botón de menú abre un selector móvil y de escritorio con el curso actual y el catálogo completo de lenguajes.
+- Las cuentas nuevas eligen su primera ruta tras iniciar sesión por primera vez; las cuentas existentes no reciben esta pantalla.
+- La ruta elegida se guarda en el progreso y en el perfil de Supabase.
+
 ## v1.5.4 — Escalones y racha
 
 **29 de octubre de 2026**
