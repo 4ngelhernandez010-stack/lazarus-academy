@@ -431,7 +431,7 @@ function makeExtendedLesson(course,index){
 for(const course of courseCatalog){const existing=courseLessons(course.id).length;for(let count=existing;count<60;count++)lessons.push(makeExtendedLesson(course,count));}
 
 const phaseNames = ["Aprende","Construye","Modifica","Depura","Desafío"];
-const ENERGY_CAP=5,ENERGY_RECHARGE_MS=30*60*1000;
+const ENERGY_CAP=30,LEGACY_ENERGY_CAP=5,ENERGY_RECHARGE_MS=30*60*1000;
 let currentUser=null,authMode="signin",syncTimer=null,onboardingRequired=false,courseMenuSelection="";
 const authConfig=window.LAZARUS_SUPABASE||{};
 const authClient=authConfig.url&&authConfig.anonKey&&window.supabase?.createClient?window.supabase.createClient(authConfig.url,authConfig.anonKey):null;
@@ -441,14 +441,18 @@ let currentLesson = null, currentPhase = 0, activeView = "home";
 let audioContext=null;
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-function initialState(){return {xp:0,completed:{},phaseDone:{},drafts:{},attempts:0,hints:0,lastLesson:"cpp1",selectedCourse:"cpp",hasChosenCourse:false,soundEnabled:true,energy:{current:ENERGY_CAP,updatedAt:Date.now()},dailyStreak:{days:0,best:0,lastDay:""}}}
+["gesturestart","gesturechange","gestureend"].forEach(type=>document.addEventListener(type,event=>event.preventDefault(),{passive:false}));
+function initialState(){return {xp:0,completed:{},phaseDone:{},drafts:{},attempts:0,hints:0,lastLesson:"cpp1",selectedCourse:"cpp",hasChosenCourse:false,soundEnabled:true,energy:{current:ENERGY_CAP,cap:ENERGY_CAP,updatedAt:Date.now()},dailyStreak:{days:0,best:0,lastDay:""}}}
 function loadState(){try{return {...initialState(),...JSON.parse(localStorage.getItem("codexAcademyState"))}}catch(e){return initialState()}}
 function persistState(){const key=currentUser?`lazarusAcademyState:${currentUser.id}`:"codexAcademyState";try{localStorage.setItem(key,JSON.stringify(state))}catch(e){}if(currentUser&&authClient){clearTimeout(syncTimer);syncTimer=setTimeout(syncProgress,650)}}
 function saveState(){persistState();renderStats()}
 async function syncProgress(){if(!currentUser||!authClient)return;const {error}=await authClient.from("lazarus_progress").upsert({user_id:currentUser.id,progress:state,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error){console.error("No se pudo sincronizar el progreso",error);$("#saveStatus").textContent="Sin conexión · guardado localmente"}else $("#saveStatus").textContent="Progreso sincronizado en la nube"}
 function getEnergyState(){
- const now=Date.now(),existing=state.energy||{},energy={current:Number.isFinite(existing.current)?Math.max(0,Math.min(ENERGY_CAP,Math.floor(existing.current))):ENERGY_CAP,updatedAt:Number.isFinite(existing.updatedAt)?existing.updatedAt:now};
- let changed=!state.energy||energy.current!==existing.current||energy.updatedAt!==existing.updatedAt;
+ const now=Date.now(),existing=state.energy||{},hasSavedCap=Number.isFinite(existing.cap);
+ let current=Number.isFinite(existing.current)?Math.max(0,Math.floor(existing.current)):ENERGY_CAP;
+ if(!hasSavedCap&&Number.isFinite(existing.current))current=Math.round(Math.min(LEGACY_ENERGY_CAP,current)/LEGACY_ENERGY_CAP*ENERGY_CAP);
+ const energy={current:Math.min(ENERGY_CAP,current),cap:ENERGY_CAP,updatedAt:Number.isFinite(existing.updatedAt)?existing.updatedAt:now};
+ let changed=!state.energy||!hasSavedCap||energy.current!==existing.current||energy.updatedAt!==existing.updatedAt;
  if(energy.current<ENERGY_CAP){const elapsed=Math.max(0,now-energy.updatedAt),restored=Math.floor(elapsed/ENERGY_RECHARGE_MS);if(restored>0){energy.current=Math.min(ENERGY_CAP,energy.current+restored);energy.updatedAt=energy.current===ENERGY_CAP?now:energy.updatedAt+restored*ENERGY_RECHARGE_MS;changed=true}}
  state.energy=energy;return {energy,changed};
 }
@@ -500,28 +504,10 @@ function renderCourseNav(){
 function courseMenuTile(course,selected=false){const total=courseLessons(course.id).length,done=courseLessons(course.id).filter(lesson=>isDone(lesson.id)).length;return `<button class="course-menu-tile${selected?" selected":""}" type="button" data-menu-course="${escapeHTML(course.id)}" aria-pressed="${selected}">${courseLogo(course)}<span class="course-menu-tile-copy"><b>${escapeHTML(course.name)}</b><small>${escapeHTML(course.description)}</small></span><span class="course-menu-check" aria-hidden="true">${selected?"✓":"›"}</span><span class="course-menu-tile-progress">${done}/${total} módulos</span></button>`}
 function renderCourseMenu(){const home=$("#courseMenuHome"),list=$("#courseMenuList"),continueButton=$("#courseMenuContinue"),title=$("#courseMenuTitle"),eyebrow=$("#courseMenuEyebrow"),description=$("#courseMenuDescription"),locked=onboardingRequired;title.textContent=locked?"Elige tu primer curso":"Cursos";eyebrow.textContent=locked?"EMPIEZA TU RUTA":"TU ACADEMIA";description.textContent=locked?"Escoge el lenguaje que quieres aprender. Podrás explorar los demás cursos cuando quieras.":"Continúa tu ruta o descubre todos los lenguajes de programación.";home.hidden=locked||list.dataset.open==="true";list.hidden=!locked&&list.dataset.open!=="true";home.innerHTML=locked?"":`<div class="course-menu-current">${courseMenuTile(getCourse(state.selectedCourse),false)}<button class="course-menu-explore" id="courseMenuExplore" type="button"><span class="course-menu-plus">＋</span><span><b>Explorar cursos</b><small>Ver los ${courseCatalog.length} lenguajes</small></span><span aria-hidden="true">›</span></button><div class="course-menu-summary"><span>Tu progreso en ${escapeHTML(getCourse(state.selectedCourse).name)}</span><strong>${courseLessons(state.selectedCourse).filter(lesson=>isDone(lesson.id)).length}/${courseLessons(state.selectedCourse).length}</strong></div></div>`;list.innerHTML=courseCatalog.map(course=>courseMenuTile(course,course.id===courseMenuSelection)).join("");continueButton.disabled=!courseMenuSelection;continueButton.textContent=locked?"Comenzar mi ruta":list.dataset.open==="true"?"Abrir curso":"Continuar mi ruta";const explore=$("#courseMenuExplore");if(explore)explore.addEventListener("click",()=>{list.dataset.open="true";renderCourseMenu()});list.querySelectorAll("[data-menu-course]").forEach(button=>button.addEventListener("click",()=>{courseMenuSelection=button.dataset.menuCourse;list.dataset.open="true";renderCourseMenu()}));home.querySelectorAll("[data-menu-course]").forEach(button=>button.addEventListener("click",()=>{$("#courseMenuDialog").close();openCourse(button.dataset.menuCourse)}))}
 function openCourseMenu(firstTime=false){onboardingRequired=firstTime||onboardingRequired;courseMenuSelection=onboardingRequired?"":state.selectedCourse;const list=$("#courseMenuList");if(list)list.dataset.open=onboardingRequired?"true":"false";renderCourseMenu();const dialog=$("#courseMenuDialog");if(!dialog.open)dialog.showModal();$("#mobileMenu").setAttribute("aria-expanded","true")}
-function pathNodeIcon(type){
- const icons={
-  star:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="m24 5 5.8 11.8 13 1.9-9.4 9.2 2.2 13L24 34.8l-11.6 6.1 2.2-13L5.2 18.7l13-1.9L24 5Z"/></svg>',
-  dumbbell:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 17v14M14 12v24M34 12v24M40 17v14M14 24h20"/></svg>',
-  headphones:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 26v-4a16 16 0 0 1 32 0v4M8 24h7v14H8a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3ZM40 24h-7v14h7a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3Z"/></svg>',
-  chest:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 19h34v23H7zM5 19l4-9h30l4 9M24 10v32M7 26h34M21 19v7h6v-7"/></svg>',
-  lock:'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="21" width="28" height="21" rx="4"/><path d="M16 21v-7a8 8 0 0 1 16 0v7M24 29v5"/></svg>',
-  check:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="m10 25 9 9 19-20"/></svg>'
- };
- return icons[type]||icons.star;
-}
-function pathNodeKind(lesson,courseIndex){
- const title=lesson.title||"";
- if(/reto|desaf[ií]o|proyecto|integrador/i.test(title))return "dumbbell";
- if(/repaso|audio|escucha|comprensi[oó]n/i.test(title))return "headphones";
- if(courseIndex%10===9)return "chest";
- if(courseIndex%10===4)return "headphones";
- return "star";
-}
+function pathNodeIcon(){return '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="m24 5 5.8 11.8 13 1.9-9.4 9.2 2.2 13L24 34.8l-11.6 6.1 2.2-13L5.2 18.7l13-1.9L24 5Z"/></svg>'}
 function renderPathNodes(course,group,offset=0){
  const all=courseLessons(course.id);
- return `<div class="lesson-path">${group.map((lesson,index)=>{const courseIndex=offset+index,done=isDone(lesson.id),locked=courseIndex>0&&!isDone(all[courseIndex-1].id),active=!done&&!locked,status=done?"completada":locked?"bloqueada":"disponible",kind=done?"check":pathNodeKind(lesson,courseIndex);return `<div class="path-step ${done?"done":""} ${locked?"locked":""} ${active?"current":""}"><button class="path-node node-${kind}" type="button" data-lesson-id="${lesson.id}" aria-label="${escapeHTML(lesson.title)} · ${status}" ${locked?"disabled":""}>${pathNodeIcon(kind)}${locked?'<span class="node-lock-badge" aria-hidden="true">🔒</span>':""}</button><span class="path-label">${escapeHTML(lesson.short||lesson.title)}</span></div>`}).join("")}</div>`;
+ return `<div class="lesson-path">${group.map((lesson,index)=>{const courseIndex=offset+index,done=isDone(lesson.id),locked=courseIndex>0&&!isDone(all[courseIndex-1].id),active=!done&&!locked,status=done?"completada":locked?"bloqueada":"disponible",kind="star";return `<div class="path-step ${done?"done":""} ${locked?"locked":""} ${active?"current":""}"><button class="path-node node-${kind}" type="button" data-lesson-id="${lesson.id}" aria-label="${escapeHTML(lesson.title)} · ${status}" ${locked?"disabled":""}>${pathNodeIcon(kind)}${locked?'<span class="node-lock-badge" aria-hidden="true">🔒</span>':""}</button><span class="path-label">${escapeHTML(lesson.short||lesson.title)}</span></div>`}).join("")}</div>`;
 }
 function connectPathNodes(root){root.querySelectorAll("[data-lesson-id]").forEach(button=>button.addEventListener("click",()=>openLesson(button.dataset.lessonId)))}
 function renderHomeCourses(){
