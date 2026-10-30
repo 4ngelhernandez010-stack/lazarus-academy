@@ -177,3 +177,7 @@ html,body{background:#fff;color:#182b38}body{color:#182b38}.app-shell,.main-area
 
 @media(hover:none),(pointer:coarse){.course-menu-tile:hover,.course-menu-explore:hover{transform:none;border-color:#dce5eb;background:#fff;box-shadow:none}.course-menu-tile.selected:hover{border-color:#1CB0F6;background:#f0faff;box-shadow:0 0 0 2px #1cb0f628}.course-menu-explore:hover{background:#f7fafc}}
 
+/* v1.5.7 · Camino sin conectores desalineados, estrellas únicas y zoom táctil desactivado */
+.lesson-path::before{display:none;content:none}.path-node svg{fill:#fff;stroke:#fff;stroke-width:1.5;stroke-linejoin:round}.path-node.node-star,.path-step.done .path-node{background:linear-gradient(145deg,#82e439,#58CC02);box-shadow:0 7px 0 #43a800,0 10px 20px #58cc0233}.path-step.current .path-node{background:linear-gradient(145deg,#9bea63,#58CC02)}.path-step.locked .path-node svg{fill:#91a4ad;stroke:#91a4ad}.energy-pips{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:7px;max-width:380px;margin:18px auto}.energy-pip{width:100%;height:12px;border-radius:99px}.energy-card{max-width:500px}.energy-card #energyTimer{margin-top:10px}
+@media(max-width:760px){html,body{touch-action:pan-y}}
+
