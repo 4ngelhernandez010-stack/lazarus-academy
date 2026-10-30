@@ -434,10 +434,10 @@ const phaseNames = ["Aprende","Construye","Modifica","Depura","Desafío"];
 const ENERGY_CAP=5,ENERGY_RECHARGE_MS=30*60*1000;
 let currentUser=null,authMode="signin",syncTimer=null;
 const authConfig=window.LAZARUS_SUPABASE||{};
-let authClient=authConfig.url&&authConfig.anonKey&&window.supabase?.createClient?window.supabase.createClient(authConfig.url,authConfig.anonKey):null;
+const authClient=authConfig.url&&authConfig.anonKey&&window.supabase?.createClient?window.supabase.createClient(authConfig.url,authConfig.anonKey):null;
 const state = loadState();
 state.soundEnabled=state.soundEnabled!==false;
-let currentLesson = null, currentPhase = 0, activeView = "home", progressListLimit = 50;
+let currentLesson = null, currentPhase = 0, activeView = "home";
 let audioContext=null;
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -483,7 +483,7 @@ function switchView(name){
  $$(".mobile-nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
  $("#crumb").textContent=({home:"APRENDER",courses:"TUS RUTAS",progress:"MI PROGRESO",lesson:"LECCIÓN"})[name]||"APRENDER";
  closeMobileMenu();window.scrollTo({top:0,behavior:"smooth"});
- if(name==="courses")renderCourseListing();if(name==="progress")renderProgressList();
+ if(name==="courses")renderCourseListing();
 }
 function courseLogo(course,size=""){
  return `<span class="course-icon logo-icon ${size}"><img src="assets/logos/${course.icon}.svg" alt="${escapeHTML(course.name)} logo" loading="lazy"></span>`;
@@ -508,11 +508,10 @@ function renderCourseListing(){
  $("#coursePicker").addEventListener("change",event=>openCourse(event.target.value));connectPathNodes(holder);
 }
 function renderProgressList(){
- const holder=$("#progressListing");if(!holder||activeView!=="progress")return;holder.innerHTML="";
- lessons.slice(0,progressListLimit).forEach((l,i)=>{const row=document.createElement("div");row.className="lesson-row"+(isDone(l.id)?" done":"");
- row.innerHTML=`<div class="lesson-number">${isDone(l.id)?"✓":String(i+1).padStart(2,"0")}</div><div class="lesson-row-main"><b>${escapeHTML(l.title)}</b><small>${escapeHTML(getCourse(l.course).name)} · ${isDone(l.id)?"Completada":"Pendiente"} · ${escapeHTML(l.duration)}</small></div><button class="row-action">${isDone(l.id)?"Repasar":"Abrir"} →</button>`;
+ const holder=$("#progressListing");if(!holder)return;holder.innerHTML="";
+ lessons.forEach((l,i)=>{const row=document.createElement("div");row.className="lesson-row"+(isDone(l.id)?" done":"");
+ row.innerHTML=`<div class="lesson-number">${isDone(l.id)?"✓":String(i+1).padStart(2,"0")}</div><div class="lesson-row-main"><b>${l.title}</b><small>${escapeHTML(getCourse(l.course).name)} · ${isDone(l.id)?"Completada":"Pendiente"} · ${l.duration}</small></div><button class="row-action">${isDone(l.id)?"Repasar":"Abrir"} →</button>`;
  row.querySelector("button").addEventListener("click",()=>openLesson(l.id));holder.appendChild(row)});
- if(progressListLimit<lessons.length){const more=document.createElement("button");more.className="btn btn-outline progress-load-more";more.type="button";more.textContent=`Cargar 50 más (${lessons.length-progressListLimit} restantes)`;more.addEventListener("click",()=>{progressListLimit=Math.min(lessons.length,progressListLimit+50);renderProgressList()});holder.appendChild(more)}
 }
 function openCourse(course){state.selectedCourse=course;saveState();switchView("courses");setTimeout(()=>{const el=$("#courseListing");if(el)el.scrollIntoView({behavior:"smooth",block:"start"})},30)}
 function openLesson(id,phase=0){
@@ -622,19 +621,7 @@ function enableMotionFX(){
 }
 function setAuthMode(mode){authMode=mode;const signup=mode==="signup";$("#authNameWrap").hidden=!signup;$("#authName").required=signup;$("#authPassword").autocomplete=signup?"new-password":"current-password";$("#authSubmit").textContent=signup?"Crear cuenta":"Iniciar sesión";$("#authTitle").textContent=signup?"Empieza a programar hoy":"Qué bueno verte de nuevo";$("#authDescription").textContent=signup?"Crea tu cuenta gratuita y guarda tu progreso en todos tus dispositivos.":"Inicia sesión para continuar justo donde lo dejaste.";$("#authSignInTab").classList.toggle("active",!signup);$("#authSignInTab").setAttribute("aria-selected",String(!signup));$("#authSignUpTab").classList.toggle("active",signup);$("#authSignUpTab").setAttribute("aria-selected",String(signup));showAuthMessage("")}
 function renderAuthStatus(){const name=currentUser?.user_metadata?.username||currentUser?.email?.split("@")[0]||"";$("#accountButtonText").textContent=currentUser?name:"Iniciar sesión";$("#accountAvatar").textContent=currentUser?name.slice(0,1).toUpperCase():"L";$("#accountStatus").textContent=currentUser?name:"Modo invitado";$("#saveStatus").textContent=currentUser?"Progreso sincronizado en la nube":"Avance guardado en este dispositivo";$("#authLogout").hidden=!currentUser;$("#authTabs").hidden=!!currentUser;$("#authNameWrap").hidden=!!currentUser||authMode!=="signup";$("#authEmail").closest("label").hidden=!!currentUser;$("#authPassword").closest("label").hidden=!!currentUser;$("#authSubmit").hidden=!!currentUser;$("#authClose").hidden=!currentUser&&document.body.classList.contains("auth-locked");$("#authTitle").textContent=currentUser?"Tu cuenta Lazarus":authMode==="signup"?"Empieza a programar hoy":"Qué bueno verte de nuevo";$("#authDescription").textContent=currentUser?`Sesión iniciada como ${currentUser.email}. Tu progreso se sincroniza con tu cuenta.`:authMode==="signup"?"Crea tu cuenta gratuita y guarda tu progreso en todos tus dispositivos.":"Inicia sesión para continuar justo donde lo dejaste."}
-async function loadUserProgress(user){
- currentUser=user;
- const cacheKey=`lazarusAcademyState:${user.id}`;let local=null;
- try{local=JSON.parse(localStorage.getItem(cacheKey)||"null")}catch(error){console.warn("No se pudo leer el progreso local",error)}
- Object.assign(state,initialState(),local||state);
- document.body.classList.remove("auth-locked");renderAuthStatus();renderCourseNav();renderHomeCourses();renderCourseListing();renderStats();if(currentLesson)renderLesson();if($("#authDialog").open)$("#authDialog").close();
- $("#saveStatus").textContent="Sincronizando progreso…";
- try{
-  const {data,error}=await authClient.from("lazarus_progress").select("progress").eq("user_id",user.id).maybeSingle();if(error)throw error;
-  if(data?.progress){Object.assign(state,initialState(),data.progress);localStorage.setItem(cacheKey,JSON.stringify(state));$("#saveStatus").textContent="Progreso sincronizado en la nube";renderHomeCourses();renderCourseListing();renderStats();if(currentLesson)renderLesson()}
-  else{await syncProgress();if($("#saveStatus").textContent!=="Sin conexión · guardado localmente")$("#saveStatus").textContent="Progreso sincronizado en la nube"}
- }catch(error){console.error("No se pudo sincronizar el progreso",error);$("#saveStatus").textContent="Sin conexión · guardado localmente"}
-}
+async function loadUserProgress(user){currentUser=user;try{const {data,error}=await authClient.from("lazarus_progress").select("progress").eq("user_id",user.id).maybeSingle();if(error)throw error;const local=JSON.parse(localStorage.getItem(`lazarusAcademyState:${user.id}`)||"null");const cloud=data?.progress;Object.assign(state,initialState(),cloud||local||{});if(!cloud){await syncProgress()}else localStorage.setItem(`lazarusAcademyState:${user.id}`,JSON.stringify(state));$("#saveStatus").textContent="Progreso sincronizado en la nube"}catch(error){console.error("No se pudo cargar el progreso de la cuenta",error);const local=JSON.parse(localStorage.getItem(`lazarusAcademyState:${user.id}`)||"null");Object.assign(state,initialState(),local||{});$("#saveStatus").textContent="Cuenta activa · error de sincronización";$("#authMessage").textContent="No se pudo abrir el almacenamiento de progreso. Revisa la instalación de Supabase."}document.body.classList.remove("auth-locked");renderAuthStatus();renderCourseNav();renderHomeCourses();renderCourseListing();renderStats();if(currentLesson)renderLesson();if($("#authDialog").open)$("#authDialog").close()}
 let authRetryTimer;
 function showAuthMessage(message,error=false){clearInterval(authRetryTimer);const el=$("#authMessage");el.textContent=message;el.classList.toggle("error",error)}
 function showAuthError(error){
@@ -656,21 +643,7 @@ function showAuthError(error){
  }
  showAuthMessage(message||"No se pudo completar la operación.",true);
 }
-function loadSupabaseLibrary(){
- if(window.supabase?.createClient)return Promise.resolve();
- return new Promise((resolve,reject)=>{const script=document.createElement("script"),timer=setTimeout(()=>{script.remove();reject(new Error("El servicio de cuentas está tardando. Comprueba tu conexión e inténtalo de nuevo."))},10000);script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";script.async=true;script.onload=()=>{clearTimeout(timer);resolve()};script.onerror=()=>{clearTimeout(timer);reject(new Error("No se pudo cargar el servicio de cuentas."))};document.head.appendChild(script)})
-}
-async function initializeAuth(){
- renderAuthStatus();$("#authDialog").showModal();
- if(!authConfig.url||!authConfig.anonKey){$("#saveStatus").textContent="Configura Supabase para activar tu cuenta";showAuthMessage("Configura el inicio de sesión y la sincronización en SETUP.md.",true);return}
- const submit=$("#authSubmit");submit.disabled=true;showAuthMessage("Conectando tu cuenta…");
- try{
-  await loadSupabaseLibrary();authClient=authClient||window.supabase.createClient(authConfig.url,authConfig.anonKey);
-  const {data,error}=await authClient.auth.getSession();if(error)throw error;
-  if(data.session?.user)await loadUserProgress(data.session.user);else showAuthMessage("Inicia sesión o crea una cuenta para entrar a Lazarus Academy.");
- }catch(error){showAuthMessage(error.message||"No se pudo comprobar la sesión. Revisa tu conexión e inténtalo de nuevo.",true)}
- finally{submit.disabled=false}
-}
+function initializeAuth(){renderAuthStatus();if(!authClient){$("#saveStatus").textContent="Configura Supabase para activar tu cuenta";$("#authDialog").showModal();showAuthMessage("Configura Supabase para activar el inicio de sesión y sincronizar el progreso. Consulta SETUP.md.",true);return}$("#authDialog").showModal();authClient.auth.getSession().then(({data})=>{if(data.session?.user)loadUserProgress(data.session.user);else showAuthMessage("Inicia sesión o crea una cuenta para entrar a Lazarus Academy.")}).catch(error=>showAuthMessage(error.message||"No se pudo comprobar la sesión. Revisa tu conexión e inténtalo de nuevo.",true))}
 document.addEventListener("click",event=>{const viewButton=event.target.closest("[data-view]");if(viewButton)switchView(viewButton.dataset.view)});
 $("#accountButton").addEventListener("click",()=>{if(!currentUser)setAuthMode("signin");renderAuthStatus();if(!authClient)showAuthMessage("Configura la URL y la clave pública de Supabase en supabase-config.js y ejecuta supabase/schema.sql para activar cuentas compartidas.");$("#authDialog").showModal()});
 $("#authClose").addEventListener("click",()=>{if(currentUser)$("#authDialog").close()});
