@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f9f5">
-  <meta name="application-version" content="1.5.2">
+  <meta name="application-version" content="1.4.0">
   <meta name="description" content="Lazarus Academy: 840 módulos para aprender 14 lenguajes desde cero. Crea una cuenta y sincroniza tu progreso.">
   <title>Lazarus Academy — Aprende haciendo</title>
   <link rel="icon" href="assets/lazarus-logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=1.5.1">
+  <link rel="stylesheet" href="styles.css?v=1.4.0">
 </head>
 <body class="auth-locked">
   <div class="app-shell">
@@ -26,7 +26,7 @@
       <div class="sidebar-bottom">
         <div class="mini-status"><span class="status-dot"></span><div><b id="accountStatus">Modo invitado</b><small id="saveStatus">Avance guardado en este dispositivo</small></div></div>
         <button class="reset-link" id="resetProgress">Reiniciar progreso</button>
-        <small class="app-version">v1.5.2 · Panel visible</small>
+        <small class="app-version">v1.4.0 · Camino de código</small>
       </div>
     </aside>
     <button class="mobile-scrim" id="mobileScrim" type="button" aria-label="Cerrar menú" hidden></button>
@@ -111,8 +111,9 @@
   <nav class="mobile-bottom-nav" aria-label="Navegación principal"><button class="mobile-nav-item active" data-view="home" type="button"><span aria-hidden="true">⌂</span><small>Aprender</small></button><button class="mobile-nav-item" data-view="courses" type="button"><span aria-hidden="true">▤</span><small>Rutas</small></button><button class="mobile-nav-item" data-view="progress" type="button"><span aria-hidden="true">▥</span><small>Progreso</small></button></nav>
   <dialog class="energy-dialog" id="energyDialog" aria-labelledby="energyTitle"><div class="energy-card"><button class="energy-close" id="energyClose" type="button" aria-label="Cerrar">×</button><div class="energy-illustration" aria-hidden="true">ϟ</div><div class="eyebrow muted">PAUSA DE PRÁCTICA</div><h2 id="energyTitle">Tu energía</h2><p class="energy-total"><strong id="energyDialogCount">5/5</strong> respuestas disponibles</p><div class="energy-pips" id="energyPips" aria-label="Puntos de energía"></div><p id="energyTimer">La energía se regenera con el tiempo.</p><div class="energy-explanation">Cada respuesta revisada usa 1 punto, sea correcta o no. Cuando se agote, podrás seguir leyendo y repasando; volverá 1 punto cada 30 minutos.</div><button class="btn btn-primary" id="energyCloseAction" type="button">Seguir aprendiendo</button></div></dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script defer src="supabase-config.js"></script>
-  <script defer src="app.js?v=1.5.2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js?v=1.4.0"></script>
 </body>
 </html>
 
