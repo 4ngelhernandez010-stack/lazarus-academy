@@ -149,8 +149,3 @@ body{background:#f7f9f5;color:#263238;font-size:16px}.app-shell{background:#f7f9
 @media(max-width:380px){.topbar-right{gap:4px}.streak .ui-icon{display:none}.energy-button small{display:none}.energy-button{grid-template-rows:auto;padding:5px 7px}.energy-symbol{grid-row:auto}.breadcrumb{letter-spacing:.06em}.path-step:nth-child(4n+1){transform:translateX(-46px)}.path-step:nth-child(4n+2){transform:translateX(-17px)}.path-step:nth-child(4n+3){transform:translateX(19px)}.path-step:nth-child(4n){transform:translateX(47px)}}
 @media(prefers-reduced-motion:reduce){.energy-symbol,.energy-illustration,.path-step.current .path-node{animation:none}}
 
-
-/* v1.4.1 · Pantalla de bienvenida */
-
-.progress-load-more{display:block;margin:22px auto}
-
