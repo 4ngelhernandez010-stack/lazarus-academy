@@ -2,6 +2,13 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.5.1 — Inicio directo
+
+**29 de octubre de 2026**
+
+- Se quitó la pantalla de carga animada para entrar directamente a Lazarus Academy.
+- Se conservan la sincronización de progreso en segundo plano y la carga progresiva del historial.
+
 ## v1.5.0 — Carga ligera
 
 **29 de octubre de 2026**
