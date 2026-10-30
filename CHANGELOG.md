@@ -2,6 +2,15 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.5.4 — Escalones y racha
+
+**29 de octubre de 2026**
+
+- Iconos SVG para lecciones, desafíos, repasos, cofres de unidad, lecciones completadas y bloqueadas.
+- Los nodos del camino ahora tienen volumen, contorno y una ruta visual, usando la paleta azul, verde y blanco.
+- Racha diaria: completar una lección entera cuenta como el día; el contador aumenta en días consecutivos y guarda la mejor marca.
+- Panel de meta diaria con estado de hoy, récord y progreso. La racha se guarda junto con el progreso de la cuenta.
+
 ## v1.5.3 — Azul y verde
 
 **29 de octubre de 2026**
