@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#FFFFFF">
-  <meta name="application-version" content="1.5.3">
+  <meta name="application-version" content="1.5.4">
   <meta name="description" content="Lazarus Academy: 840 módulos para aprender 14 lenguajes desde cero. Crea una cuenta y sincroniza tu progreso.">
   <title>Lazarus Academy — Aprende haciendo</title>
   <link rel="icon" href="assets/lazarus-logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=1.5.3">
+  <link rel="stylesheet" href="styles.css?v=1.5.4">
 </head>
 <body class="auth-locked">
   <div class="app-shell">
@@ -26,7 +26,7 @@
       <div class="sidebar-bottom">
         <div class="mini-status"><span class="status-dot"></span><div><b id="accountStatus">Modo invitado</b><small id="saveStatus">Avance guardado en este dispositivo</small></div></div>
         <button class="reset-link" id="resetProgress">Reiniciar progreso</button>
-        <small class="app-version">v1.5.3 · Azul y verde</small>
+        <small class="app-version">v1.5.4 · Escalones y racha</small>
       </div>
     </aside>
     <button class="mobile-scrim" id="mobileScrim" type="button" aria-label="Cerrar menú" hidden></button>
@@ -35,7 +35,7 @@
       <header class="topbar">
         <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
         <div class="breadcrumb">LAZARUS <span>/</span> <b id="crumb">APRENDER</b></div>
-        <div class="topbar-right"><button class="energy-button" id="energyButton" type="button" aria-label="Ver energía"><span class="energy-symbol" aria-hidden="true">ϟ</span><span id="energyCount">5/5</span><small>ENERGÍA</small></button><span class="streak"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.5 5.2L19 10l-5.5 1.8L12 17l-1.5-5.2L5 10l5.5-1.8L12 3Z"/></svg> <b id="topXp">0 XP</b></span><button class="sound-toggle" id="soundToggle" type="button" aria-label="Silenciar sonidos" aria-pressed="true" title="Sonidos activados"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a5 5 0 0 1 0 6M18.5 6.5a9 9 0 0 1 0 11"/></svg></button><button class="account-button" id="accountButton" type="button"><span class="avatar" id="accountAvatar">L</span><span id="accountButtonText">Iniciar sesión</span></button></div>
+        <div class="topbar-right"><button class="energy-button" id="energyButton" type="button" aria-label="Ver energía"><span class="energy-symbol" aria-hidden="true">ϟ</span><span id="energyCount">5/5</span><small>ENERGÍA</small></button><span class="daily-streak-summary" title="Completa al menos una lección cada día para mantener tu racha"><span class="streak-flame" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M25 3c2 9-7 10-4 18 2-2 4-5 4-8 8 6 13 14 11 22-1 7-7 11-14 11S9 41 8 33c-1-7 3-13 9-19 0 6 1 8 3 10C20 14 29 13 25 3Z"/></svg></span><b id="streakCount">0</b><small>días</small></span><span class="xp-summary"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.5 5.2L19 10l-5.5 1.8L12 17l-1.5-5.2L5 10l5.5-1.8L12 3Z"/></svg> <b id="topXp">0 XP</b></span><button class="sound-toggle" id="soundToggle" type="button" aria-label="Silenciar sonidos" aria-pressed="true" title="Sonidos activados"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a5 5 0 0 1 0 6M18.5 6.5a9 9 0 0 1 0 11"/></svg></button><button class="account-button" id="accountButton" type="button"><span class="avatar" id="accountAvatar">L</span><span id="accountButtonText">Iniciar sesión</span></button></div>
       </header>
 
       <section class="view active" id="view-home">
@@ -53,6 +53,8 @@
             <div class="float-card card-bottom"><span>✦</span> +25 XP</div>
           </div>
         </div>
+
+        <section class="daily-streak-card" aria-live="polite"><div class="daily-streak-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M25 3c2 9-7 10-4 18 2-2 4-5 4-8 8 6 13 14 11 22-1 7-7 11-14 11S9 41 8 33c-1-7 3-13 9-19 0 6 1 8 3 10C20 14 29 13 25 3Z"/></svg></div><div class="daily-streak-copy"><span>RACHA DE APRENDIZAJE</span><p id="dailyStreakMessage">Completa una lección para iniciar tu racha diaria.</p><small id="bestStreak">Mejor racha: 0 días</small><div class="daily-streak-track" role="progressbar" aria-label="Meta diaria: una lección" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0"><i id="dailyStreakProgress"></i></div></div><strong class="daily-streak-number"><span id="dailyStreakDays">0</span><small>días</small></strong></section>
 
         <div class="stats-grid">
           <article class="stat-card"><div class="stat-top"><span>PROGRESO TOTAL</span><span class="stat-symbol">◔</span></div><div class="stat-value" id="totalProgress">0%</div><div class="progress-track"><div class="progress-fill" id="totalProgressBar"></div></div><small id="completedLabel">0 de 840 lecciones completadas</small></article>
@@ -113,7 +115,7 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  <script src="app.js?v=1.5.3"></script>
+  <script src="app.js?v=1.5.4"></script>
 </body>
 </html>
 
