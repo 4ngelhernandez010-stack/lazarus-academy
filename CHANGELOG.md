@@ -2,6 +2,13 @@
 
 Desde esta edición, cada actualización tendrá un número secuencial y un nombre. Las versiones menores (`1.2.0`, `1.3.0`…) agrupan mejoras visibles; los ajustes pequeños incrementan el último número (`1.1.1`, `1.1.2`…).
 
+## v1.5.6 — Catálogo ordenado
+
+**29 de octubre de 2026**
+
+- Se corrigió la distribución de logo, descripción, contador y marca de selección en todas las tarjetas del selector de cursos.
+- El resaltado por hover solo se activa en dispositivos con cursor; en pantallas táctiles el azul indica selección o foco.
+
 ## v1.5.5 — Selector de cursos
 
 **29 de octubre de 2026**
