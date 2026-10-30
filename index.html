@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#FFFFFF">
-  <meta name="application-version" content="1.5.4">
+  <meta name="application-version" content="1.5.5">
   <meta name="description" content="Lazarus Academy: 840 módulos para aprender 14 lenguajes desde cero. Crea una cuenta y sincroniza tu progreso.">
   <title>Lazarus Academy — Aprende haciendo</title>
   <link rel="icon" href="assets/lazarus-logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=1.5.4">
+  <link rel="stylesheet" href="styles.css?v=1.5.5">
 </head>
 <body class="auth-locked">
   <div class="app-shell">
@@ -26,7 +26,7 @@
       <div class="sidebar-bottom">
         <div class="mini-status"><span class="status-dot"></span><div><b id="accountStatus">Modo invitado</b><small id="saveStatus">Avance guardado en este dispositivo</small></div></div>
         <button class="reset-link" id="resetProgress">Reiniciar progreso</button>
-        <small class="app-version">v1.5.4 · Escalones y racha</small>
+        <small class="app-version">v1.5.5 · Selector de cursos</small>
       </div>
     </aside>
     <button class="mobile-scrim" id="mobileScrim" type="button" aria-label="Cerrar menú" hidden></button>
@@ -94,6 +94,15 @@
       </section>
     </main>
   </div>
+  <dialog class="course-menu-dialog" id="courseMenuDialog" aria-labelledby="courseMenuTitle">
+    <div class="course-menu-card">
+      <button class="course-menu-close" id="courseMenuClose" type="button" aria-label="Cerrar menú">×</button>
+      <div class="course-menu-heading"><span class="eyebrow muted" id="courseMenuEyebrow">TU ACADEMIA</span><h2 id="courseMenuTitle">Cursos</h2><p id="courseMenuDescription">Elige una ruta para aprender a programar.</p></div>
+      <div class="course-menu-home" id="courseMenuHome"></div>
+      <div class="course-menu-list" id="courseMenuList" hidden></div>
+      <div class="course-menu-footer"><button class="btn btn-primary" id="courseMenuContinue" type="button" disabled>Continuar</button></div>
+    </div>
+  </dialog>
   <dialog class="auth-dialog" id="authDialog" aria-labelledby="authTitle">
     <form id="authForm" class="auth-card">
       <button class="auth-close" id="authClose" type="button" aria-label="Cerrar">×</button>
@@ -115,7 +124,7 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  <script src="app.js?v=1.5.4"></script>
+  <script src="app.js?v=1.5.5"></script>
 </body>
 </html>
 
